@@ -44,23 +44,18 @@ namespace WebHostChecker.Controllers
             if (ModelState.IsValid)
             {
 
-                WebAddress address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressName == model.WebAddress);
-                if (address == null)
+                WebAddress address = new WebAddress
                 {
-                    // добавляем пользователя в бд
-                    address = new WebAddress
-                    {
-                        AddressName = model.WebAddress,
-                        Period = model.Period,
-                    };
-                    _context.Addresses.Add(address);
-                    await _context.SaveChangesAsync();
+                    AddressName = model.WebAddress,
+                    Period = model.Period,
+                };
+                _context.Addresses.Add(address);
+                await _context.SaveChangesAsync();
 
-                    return RedirectToAction("AddressList", "Home");
-                }
-                else
-                    ModelState.AddModelError("", "Некорректные данные");
+                return RedirectToAction("AddressList", "Home");
             }
+            else
+                ModelState.AddModelError("", "Некорректные данные");
             return View(model);
         }
 

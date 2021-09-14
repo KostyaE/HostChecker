@@ -45,7 +45,7 @@ namespace WebHostChecker.Controllers
 
                     await Authenticate(user); // аутентификация
 
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("AddressList", "Home");
                 }
                 else
                     ModelState.AddModelError("", "Некорректные логин и(или) пароль");
@@ -70,7 +70,7 @@ namespace WebHostChecker.Controllers
                 {
                     await Authenticate(user); // аутентификация
 
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("AddressList", "Home");
                 }
                 ModelState.AddModelError("", "Некорректные логин и(или) пароль");
             }

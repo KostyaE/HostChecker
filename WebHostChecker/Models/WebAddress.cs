@@ -9,7 +9,7 @@ namespace WebHostChecker.Models
     {
         public int Id { get; set; }
         public string AddressName { get; set; }
-        public int Period { get; set; }
+        public ushort Period { get; set; }
         public bool Accessed { get; set; }
 
     }
