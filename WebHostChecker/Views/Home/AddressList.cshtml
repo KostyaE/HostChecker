@@ -1,0 +1,18 @@
+﻿@model IEnumerable<WebHostChecker.Models.WebAddress>
+@{
+    ViewData["Title"] = "Список URL-адресов";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p><a href="/Home/AddUrl">Добавить URL-адрес</a></p>
+<table class="table">
+    <thead>
+        <tr><th>Url-адрес</th><th>Период проверки</th><th>Доступность</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var address in Model)
+        {
+            <tr><td>@address.AddressName</td><td>@address.Period</td><td>@address.Accessed</td></tr>
+        }
+    </tbody>
+</table>
