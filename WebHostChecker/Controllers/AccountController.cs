@@ -14,8 +14,8 @@ namespace WebHostChecker.Controllers
 {
     public class AccountController : Controller
     {
-        private UserContext _context;
-        public AccountController(UserContext context)
+        private ApplicationContext _context;
+        public AccountController(ApplicationContext context)
         {
             _context = context;
         }

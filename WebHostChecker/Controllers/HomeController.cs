@@ -15,9 +15,9 @@ namespace WebHostChecker.Controllers
 {
     public class HomeController : Controller
     {
-        private UserContext _context;
+        private ApplicationContext _context;
 
-        public HomeController(UserContext context)
+        public HomeController(ApplicationContext context)
         {
             _context = context;
         }
@@ -48,7 +48,8 @@ namespace WebHostChecker.Controllers
                 {
                     AddressName = model.WebAddress,
                     Period = model.Period,
-                };
+                    Availability = HostCheck.GetStatus(model.WebAddress).Result
+            };
                 _context.Addresses.Add(address);
                 await _context.SaveChangesAsync();
 
@@ -56,14 +57,21 @@ namespace WebHostChecker.Controllers
             }
             else
                 ModelState.AddModelError("", "Некорректные данные");
-            return View(model);
+            return View("AddressList");
         }
 
-
-        [Authorize(Roles = "admin")]
-        public IActionResult About()
+        [Authorize(Roles = "admin, user")]
+        public IActionResult SetPeriod(DateTime start, DateTime end, string url)
         {
-            return Content("Вход только для администратора");
+            //реализавать фильтр
+            List<RequestHistory> histories = new List<RequestHistory>();
+            return View(histories);
+        }
+
+        [Authorize(Roles = "admin, user")]
+        public IActionResult History()
+        {
+            return View(_context.History.ToList());
         }
 
         //[Authorize]

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace WebHostChecker.Models
 {
-    public class WebAddress
+    public class RequestHistory
     {
         public int Id { get; set; }
-        public string AddressName { get; set; }
-        public ushort Period { get; set; }
+        public DateTime CheckDate { get; set; }
+        public string HostName { get; set; }
         public bool Availability { get; set; }
         public int? UserId { get; set; }
     }

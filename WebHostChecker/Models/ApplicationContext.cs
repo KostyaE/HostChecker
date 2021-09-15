@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace WebHostChecker.Models
 {
-    public class UserContext : DbContext
+    public class ApplicationContext : DbContext
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<WebAddress> Addresses { get; set; }
-        public UserContext(DbContextOptions<UserContext> options)
+        public DbSet<RequestHistory> History { get; set; }
+        public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
         {
             Database.EnsureCreated();

@@ -12,6 +12,13 @@ namespace WebHostChecker.Models
         public string Password { get; set; }
         public int? RoleId { get; set; }
         public Role Role { get; set; }
+        public List<WebAddress> WebAddreses { get; set; }
+        public List<RequestHistory> RequestsHistory { get; set; }
+        public User()
+        {
+            WebAddreses = new List<WebAddress>();
+            RequestsHistory = new List<RequestHistory>();
+        }
     }
     public class Role
     {
