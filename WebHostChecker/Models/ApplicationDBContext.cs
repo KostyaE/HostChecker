@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace WebHostChecker.Models
 {
-    public class ApplicationContext : DbContext
+    public class ApplicationDBContext : DbContext
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<WebAddress> Addresses { get; set; }
         public DbSet<RequestHistory> History { get; set; }
-        public ApplicationContext(DbContextOptions<ApplicationContext> options)
+        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
             : base(options)
         {
             Database.EnsureCreated();
@@ -27,7 +27,7 @@ namespace WebHostChecker.Models
 
             Role adminRole = new Role { Id = 1, Name = adminRoleName };
             Role userRole = new Role { Id = 2, Name = userRoleName };
-            User adminUser = new User { Id = 1, Email = adminEmail, Password = adminPassword, RoleId = adminRole.Id };
+            User adminUser = new User { UserId = 1, Email = adminEmail, Password = adminPassword, RoleId = adminRole.Id };
 
             modelBuilder.Entity<Role>().HasData(new Role[] { adminRole, userRole });
             modelBuilder.Entity<User>().HasData(new User[] { adminUser });

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebHostChecker.Models;
@@ -15,11 +16,14 @@ namespace WebHostChecker.Controllers
 {
     public class HomeController : Controller
     {
-        private ApplicationContext _context;
-
-        public HomeController(ApplicationContext context)
+        private ApplicationDBContext _context;
+        //private DbSet<WebAddress> addresses;
+        //private IHttpClientFactory _clientFactory;
+        public HomeController(ApplicationDBContext context, IHttpClientFactory clientFactory)
         {
             _context = context;
+            //addresses = _context.Addresses;
+            //_clientFactory = clientFactory;
         }
 
         [Authorize(Roles = "admin, user")]
@@ -41,15 +45,17 @@ namespace WebHostChecker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUrl(SetAddressModel model)
         {
+            //bool availResult = false;// = HostCheck.GetStatus(model.WebAddress).Result;
             if (ModelState.IsValid)
             {
 
                 WebAddress address = new WebAddress
                 {
                     AddressName = model.WebAddress,
-                    Period = model.Period,
-                    Availability = HostCheck.GetStatus(model.WebAddress).Result
-            };
+                    TimePeriod = model.TimePeriod,
+                    TimeOfChecking = HostCheck.AddTimeNextOfChecking(model.TimePeriod.Minute, model.TimePeriod.Hour),
+                    Availability = await HostCheck.GetStatusAsync(model.WebAddress)
+                };
                 _context.Addresses.Add(address);
                 await _context.SaveChangesAsync();
 
@@ -61,11 +67,13 @@ namespace WebHostChecker.Controllers
         }
 
         [Authorize(Roles = "admin, user")]
-        public IActionResult SetPeriod(DateTime start, DateTime end, string url)
+        public IActionResult SetPeriod(string webaddress, DateTime startdate, DateTime enddate)//DateTime start, DateTime end, string url)
         {
             //реализавать фильтр
-            List<RequestHistory> histories = new List<RequestHistory>();
-            return View(histories);
+            return Content($"WebAddress: {webaddress}  StartDate:{startdate}  EndDate: {enddate}");
+
+            //List<RequestHistory> histories = new List<RequestHistory>();
+            //return View(histories);
         }
 
         [Authorize(Roles = "admin, user")]

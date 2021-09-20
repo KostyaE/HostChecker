@@ -4,16 +4,24 @@
 }
 <h2>@ViewData["Title"]</h2>
 
+@*<form asp-action="SetPeriod" asp-controller="Home" asp-anti-forgery="true">
+        <div class="validation" asp-validation-summary="All"></div>
+        <div><label>URL:</label><br /><input asp-for="" type="url" /></div>
+        <div><label>Периодичность проверки:</label><br /><input asp-for="" type="number" /></div>
+        <input type="submit" value="Добавить" />
+    </form>*@
+
 @*<form method="post" asp-controller="~/Home/SetPeriod" asp-anti-forgery="true">
+        <div class="validation" asp-validation-summary="All"></div>
+        <div><label>URL:</label><br /><input name="url" type="url" placeholder="https://"/></div>
+        <div><label>Период с:</label><input name="start" type="datetime" /></div><div><label> по:</label><input name="end" type="datetime" /></div>
+        <input type="submit" value="Применить" />
+    </form>*@
+
+<form method="post" asp-controller="Home" asp-action="SetPeriod" asp-anti-forgery="true" autocomplete="off">
     <div class="validation" asp-validation-summary="All"></div>
-    <div><label>URL:</label><br /><input name="url" type="url" /></div>
-    <div><label>Период с:</label><input name="start" type="datetime" /></div><div><label> по:</label><input name="end" type="datetime" /></div>
-    <input type="submit" value="Применить" />
-</form>*@
-<form method="post" asp-controller="~/Home/SetPeriod" asp-anti-forgery="true" autocomplete="off" >
-    <div class="validation" asp-validation-summary="All"></div>
-    <label style="margin: 10px;">URL:</label><input name="url" type="url" placeholder="https://" />
-    <label style="margin: 10px;">Период с:</label><input name="start" type="datetime-local" /><label style="margin: 10px;">по:</label><input name="end" type="datetime-local" />
+    <label style="margin: 10px;">URL:</label><input name="webaddress" type="url" value="https://" />
+    <label style="margin: 10px;">Период с:</label><input name="startdate" type="datetime-local" /><label style="margin: 10px;">по:</label><input name="enddate" type="datetime-local" />
     <input type="submit" value="Применить" />
 </form>
 

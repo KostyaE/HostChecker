@@ -6,6 +6,6 @@
 <form asp-action="AddUrl" asp-controller="Home" asp-anti-forgery="true">
     <div class="validation" asp-validation-summary="All"></div>
     <div><label>URL:</label><br /><input asp-for="WebAddress" type="url" /></div>
-    <div><label>Периодичность проверки:</label><br /><input asp-for="Period" type="number" /></div>
+    <div><label>Периодичность проверки:</label><br /><input asp-for="TimePeriod" type="number" /></div>
     <input type="submit" value="Добавить" />
 </form>

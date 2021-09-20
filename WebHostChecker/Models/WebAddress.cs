@@ -7,10 +7,11 @@ namespace WebHostChecker.Models
 {
     public class WebAddress
     {
-        public int Id { get; set; }
+        public int WebAddressId { get; set; }
         public string AddressName { get; set; }
-        public ushort Period { get; set; }
+        public DateTime TimePeriod { get; set; }
+        public DateTime TimeOfChecking { get; set; }
         public bool Availability { get; set; }
-        public int? UserId { get; set; }
+        public User User { get; set; }
     }
 }

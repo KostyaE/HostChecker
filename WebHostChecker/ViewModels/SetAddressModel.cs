@@ -13,6 +13,6 @@ namespace WebHostChecker.ViewModels
         public string WebAddress { get; set; }
 
         [Required(ErrorMessage = "Не указан период проверки")]
-        public ushort Period { get; set; }
+        public DateTime TimePeriod { get; set; }
     }
 }

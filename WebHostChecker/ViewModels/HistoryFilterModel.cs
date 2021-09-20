@@ -16,5 +16,7 @@ namespace WebHostChecker.ViewModels
 
         [DataType(DataType.DateTime)]
         public DataType EndDate { get; set; }
+
+        public bool Availability { get; set; }
     }
 }
