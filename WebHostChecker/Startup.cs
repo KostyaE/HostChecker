@@ -11,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebHostChecker.Common;
 using WebHostChecker.Models;
+using WebHostChecker.Services;
 
 namespace WebHostChecker
 {
@@ -26,17 +28,21 @@ namespace WebHostChecker
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient("Client");
-            services.AddHttpClient("Client2");
-
-            string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(connection));
+            services.AddHttpClient();
+            //services.AddSingleton<IDbHelper, DbHelper>();
+            services.AddTransient<IHostCheck, HostCheck>();
+            //services.AddSingleton<ITimerHostCheck, TimerHostCheck>();
+            //string connection = Configuration.GetConnectionString("DefaultConnection");
+            //services.AddDbContextFactory<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(connection));
+            //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connection));
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
                     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
                     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
                 });
+            services.AddHostedService<TimerService>();
             services.AddControllersWithViews();
         }
 

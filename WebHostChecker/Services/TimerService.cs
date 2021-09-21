@@ -7,27 +7,38 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WebHostChecker.Common;
 using WebHostChecker.Models;
 
 namespace WebHostChecker.Services
 {
-    public interface IMyDependency
-    {
-
-    }
     internal sealed class TimerService : IHostedService, IDisposable
     {
-        //private HttpClient _client = clientFactory.CreateClient("Client2");
-        private ApplicationDBContext _dbContext;
-        private int checkPeriod = 30;
+        //private ApplicationDbContext _dbContext;
+        //private readonly IDbContextFactory<ApplicationDbContext> _dbcontextFactory;
+        //private readonly ITimerHostCheck _hostCheck;
+        //private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+        //private HttpClient _client;
+        //private readonly IDbHelper _dbHelper;
+        private readonly DbHelper _dbHelper;
+        private readonly IHttpClientFactory _clientFactory;
         private ILogger<TimerService> _logger;
         private Timer _timer;
-        public TimerService(ILogger<TimerService> logger, ApplicationDBContext dbContext)
+        private int checkPeriod = 30;
+
+        public TimerService(ILogger<TimerService> logger, IHttpClientFactory clientFactory, IHostCheck hostCheck)
         {
-            //_client = clientFactory.CreateClient("Client2");
+            _dbHelper = new DbHelper(hostCheck);
+            _clientFactory = clientFactory;
             _logger = logger;
-            _dbContext = dbContext;
         }
+        //public TimerService(ILogger<TimerService> logger, IHttpClientFactory clientFactory, IDbHelper dbHelper)//, ITimerHostCheck hostCheck, IHttpClientFactory clientFactory)//, ApplicationDbContext dbContext)
+        //{
+        //    //_dbHelper = new DbHelper(ILogger<DbHelper> logger, IQueryable<WebAddress> addreses, IHostCheck hostcheck);
+        //    _dbHelper = dbHelper;
+        //    _clientFactory = clientFactory;
+        //    _logger = logger;
+        //}
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("---StartAsync");
@@ -37,32 +48,29 @@ namespace WebHostChecker.Services
 
         private void CheckDB(object state)
         {
+            var client = _clientFactory.CreateClient();
+
             // Останавливаем таймер
             _timer.Change(Timeout.Infinite, 0);
             try
             {
-                IQueryable<WebAddress> addreses = _dbContext.Addresses;
-                addreses = addreses.Where(a => a.TimeOfChecking == DateTime.Now);
+                _dbHelper.GetListAddreses(client);
 
-                foreach (WebAddress obj in addreses)
-                {
-                    _logger.LogInformation("Before---Address: {0}, Availability: {1}, TimeOfChecking: {2}", obj.AddressName, obj.Availability, obj.TimeOfChecking);
-                    obj.Availability = HostCheck.WebRequest(obj.AddressName);
-                    obj.TimeOfChecking = HostCheck.AddTimeNextOfChecking(obj.TimePeriod.Minute, obj.TimePeriod.Hour);
-                    _logger.LogInformation("After    Address: {0}, Availability: {1}, TimeOfChecking: {2}", obj.AddressName, obj.Availability, obj.TimeOfChecking);
-                    _dbContext.Entry(obj).State = EntityState.Modified;
-                }
-
-                _dbContext.SaveChanges();
+                //var response = client.GetAsync("https://docs.microsoft.com");
+                //if (response.Result.IsSuccessStatusCode) //"OK" == result.StatusCode
+                //    _logger.LogInformation("Web address availibility. {0}", true);
+                //else
+                //    _logger.LogInformation("Web address availibility. {0}", false);
+                //_dbHelper.GetListAddreses();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogInformation("ERROR into TimeService. {0}", ex.Message);
+                _logger.LogInformation("ERROR into CheckDB. {0}", ex.Message);
             }
             finally
             {
                 // Возвращаем таймер в исходное состояние
-                _timer.Change(checkPeriod, checkPeriod);
+                _timer.Change(TimeSpan.FromSeconds(checkPeriod), TimeSpan.FromSeconds(checkPeriod));
             }
 
             _logger.LogInformation("------CheckDB completed.");
@@ -76,6 +84,11 @@ namespace WebHostChecker.Services
         //    else
         //        return false;
         //}
+        public DateTime AddTimeNextOfChecking(int minute, int hours)
+        {
+            DateTime nextTimeOfChecking = DateTime.Now.AddMinutes(minute).AddHours(hours);
+            return nextTimeOfChecking;
+        }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {

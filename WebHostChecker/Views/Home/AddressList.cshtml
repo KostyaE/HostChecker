@@ -5,14 +5,17 @@
 <h2>@ViewData["Title"]</h2>
 
 <p><a href="/Home/AddUrl">Добавить URL-адрес</a></p>
+<form method="post" asp-controller="Home" asp-action="CheckStateAdreses" asp-anti-forgery="true">
+    <input type="submit" value="Проверить сейчас" />
+</form>
 <table class="table">
     <thead>
-        <tr><th>Url-адрес</th><th>Период проверки</th><th>Доступность</th></tr>
+        <tr><th>Url-адрес</th><th>Период проверки</th><th>Доступность</th><th>Время следующей проверки</th></tr>
     </thead>
     <tbody>
         @foreach (var address in Model)
         {
-            <tr><td>@address.AddressName</td><td>@address.TimePeriod</td><td>@address.Availability</td></tr>
+            <tr><td>@address.AddressName</td><td>@address.TimePeriod</td><td>@address.Availability</td><td>@address.TimeOfChecking</td></tr>
         }
     </tbody>
 </table>

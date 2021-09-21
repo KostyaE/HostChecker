@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WebHostChecker.Common;
 using WebHostChecker.Models;
 using WebHostChecker.ViewModels;
 
@@ -16,12 +17,14 @@ namespace WebHostChecker.Controllers
 {
     public class HomeController : Controller
     {
-        private ApplicationDBContext _context;
+        private readonly IHostCheck _hostCheck;
+        private readonly ApplicationDbContext _context;
         //private DbSet<WebAddress> addresses;
         //private IHttpClientFactory _clientFactory;
-        public HomeController(ApplicationDBContext context, IHttpClientFactory clientFactory)
+        public HomeController(IHostCheck hostCheck, ApplicationDbContext context)//, IHttpClientFactory clientFactory, ILogger<HostCheck> logger)
         {
             _context = context;
+            _hostCheck = hostCheck;
             //addresses = _context.Addresses;
             //_clientFactory = clientFactory;
         }
@@ -53,8 +56,8 @@ namespace WebHostChecker.Controllers
                 {
                     AddressName = model.WebAddress,
                     TimePeriod = model.TimePeriod,
-                    TimeOfChecking = HostCheck.AddTimeNextOfChecking(model.TimePeriod.Minute, model.TimePeriod.Hour),
-                    Availability = await HostCheck.GetStatusAsync(model.WebAddress)
+                    TimeOfChecking = _hostCheck.AddTimeNextOfChecking(model.TimePeriod.Minute, model.TimePeriod.Hour),
+                    Availability = false//_hostCheck.GetStatusAsync(model.WebAddress).Result
                 };
                 _context.Addresses.Add(address);
                 await _context.SaveChangesAsync();
@@ -65,6 +68,16 @@ namespace WebHostChecker.Controllers
                 ModelState.AddModelError("", "Некорректные данные");
             return View("AddressList");
         }
+
+
+        [Authorize(Roles = "admin, user")]
+        [ValidateAntiForgeryToken]
+        public IActionResult CheckStateAdreses()
+        {
+            //_hostCheck.CheckDB();
+            return RedirectToAction("AddressList", "Home");
+        }
+
 
         [Authorize(Roles = "admin, user")]
         public IActionResult SetPeriod(string webaddress, DateTime startdate, DateTime enddate)//DateTime start, DateTime end, string url)
