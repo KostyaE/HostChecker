@@ -12,6 +12,7 @@ namespace WebHostChecker.Models
         public DateTime TimePeriod { get; set; }
         public DateTime TimeOfChecking { get; set; }
         public bool Availability { get; set; }
+        public int? UserId { get; set; }
         public User User { get; set; }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,24 +21,25 @@ namespace WebHostChecker.Controllers
     {
         private readonly IHostCheck _hostCheck;
         private readonly ApplicationDbContext _context;
-        //private DbSet<WebAddress> addresses;
-        //private IHttpClientFactory _clientFactory;
-        public HomeController(IHostCheck hostCheck, ApplicationDbContext context)//, IHttpClientFactory clientFactory, ILogger<HostCheck> logger)
+        private readonly IHttpClientFactory _clientFactory;
+        private User _user;
+        public HomeController(IHostCheck hostCheck,
+            ApplicationDbContext context,
+            IHttpClientFactory clientFactory)
         {
+            _clientFactory = clientFactory;
             _context = context;
             _hostCheck = hostCheck;
-            //addresses = _context.Addresses;
-            //_clientFactory = clientFactory;
         }
 
         [Authorize(Roles = "admin, user")]
-        public IActionResult AddressList()
+        public async Task<IActionResult> AddressList()
         {
-            return View(_context.Addresses.ToList());
-
-            //string role = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Value;
-            //return Content($"ваша роль: {role}");
+            _user = await _context.Users.Include(u => u.WebAddreses)
+                .Where(u => u.Email == User.Identity.Name).FirstOrDefaultAsync();
+            return View(_user.WebAddreses);
         }
+
         [Authorize(Roles = "admin, user")]
         public IActionResult AddUrl()
         {
@@ -48,16 +51,17 @@ namespace WebHostChecker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUrl(SetAddressModel model)
         {
-            //bool availResult = false;// = HostCheck.GetStatus(model.WebAddress).Result;
+            _user = await _context.Users.Where(u => u.Email == User.Identity.Name).FirstOrDefaultAsync();
+            var client = _clientFactory.CreateClient();
             if (ModelState.IsValid)
             {
-
                 WebAddress address = new WebAddress
                 {
                     AddressName = model.WebAddress,
                     TimePeriod = model.TimePeriod,
                     TimeOfChecking = _hostCheck.AddTimeNextOfChecking(model.TimePeriod.Minute, model.TimePeriod.Hour),
-                    Availability = false//_hostCheck.GetStatusAsync(model.WebAddress).Result
+                    Availability = await _hostCheck.WebRequest(model.WebAddress, client),
+                    User = _user
                 };
                 _context.Addresses.Add(address);
                 await _context.SaveChangesAsync();
@@ -69,60 +73,34 @@ namespace WebHostChecker.Controllers
             return View("AddressList");
         }
 
-
-        [Authorize(Roles = "admin, user")]
-        [ValidateAntiForgeryToken]
-        public IActionResult CheckStateAdreses()
+        public async Task<IActionResult> Delete([FromQuery(Name = "WebAddressId")] int addressId)
         {
-            //_hostCheck.CheckDB();
-            return RedirectToAction("AddressList", "Home");
+
+            _user = await _context.Users.Include(u => u.WebAddreses)
+                .Include(h => h.RequestsHistory)
+                .Where(u => u.Email == User.Identity.Name).FirstOrDefaultAsync();
+
+            var addressItem = _context.Addresses.FirstOrDefault(a => a.WebAddressId == addressId);
+            var historyItems = _context.History.Where(a => a.WebAddressId == addressId);
+            
+            _context.Addresses.Remove(addressItem);
+
+            foreach (var item in historyItems)
+            {
+                _context.History.Remove(item);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("AddressList");
         }
 
-
         [Authorize(Roles = "admin, user")]
-        public IActionResult SetPeriod(string webaddress, DateTime startdate, DateTime enddate)//DateTime start, DateTime end, string url)
+        public async Task<ActionResult> History()
         {
-            //реализавать фильтр
-            return Content($"WebAddress: {webaddress}  StartDate:{startdate}  EndDate: {enddate}");
-
-            //List<RequestHistory> histories = new List<RequestHistory>();
-            //return View(histories);
+            _user = await _context.Users.Include(h => h.RequestsHistory)
+                .Where(u => u.Email == User.Identity.Name).FirstOrDefaultAsync();
+            return View(_user.RequestsHistory);
         }
-
-        [Authorize(Roles = "admin, user")]
-        public IActionResult History()
-        {
-            return View(_context.History.ToList());
-        }
-
-        //[Authorize]
-        //public IActionResult Index()
-        //{
-        //    return Content(User.Identity.Name);
-        //}
-
-
-        //private readonly ILogger<HomeController> _logger;
-
-        //public HomeController(ILogger<HomeController> logger)
-        //{
-        //    _logger = logger;
-        //}
-
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
-        //public IActionResult Privacy()
-        //{
-        //    return View();
-        //}
-
-        //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        //public IActionResult Error()
-        //{
-        //    return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        //}
     }
 }

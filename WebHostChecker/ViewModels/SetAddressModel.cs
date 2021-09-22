@@ -8,6 +8,7 @@ namespace WebHostChecker.ViewModels
 {
     public class SetAddressModel
     {
+
         [Required(ErrorMessage = "Не указан URL-адрес")]
         [DataType(DataType.Url)]
         public string WebAddress { get; set; }

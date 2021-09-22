@@ -22,16 +22,25 @@ namespace WebHostChecker
             _logger = logger;
         }
 
-        public bool WebRequest(string webAddress, HttpClient client)
+        public Task<bool> WebRequest(string webAddress, HttpClient client)
         {
             //var client = _clientFactory.CreateClient();
             //var response = await client.SendAsync(request);
-            var response = client.GetAsync(webAddress);
-            System.Diagnostics.Debug.WriteLine($"WebRequest---: {response.Result.IsSuccessStatusCode}");
-            if (response.Result.IsSuccessStatusCode) //"OK" == result.StatusCode
-                return true;
-            else
-                return false;
+            try
+            {
+                var response = client.GetAsync(webAddress);
+                System.Diagnostics.Debug.WriteLine($"WebRequest---: {response.Result.IsSuccessStatusCode}");
+                if (response.Result.IsSuccessStatusCode) //"OK" == result.StatusCode
+                    return Task.FromResult(true);
+                else
+                    return Task.FromResult(false);
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ERROR into WebRequest. {ex.Message}");
+            }
+            return Task.FromResult(false);
+
         }
 
         public DateTime AddTimeNextOfChecking(int minute, int hours)

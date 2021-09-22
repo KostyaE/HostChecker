@@ -26,17 +26,17 @@ namespace WebHostChecker
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    IConfiguration configuration = hostContext.Configuration;
-                    AppSettings.Configuration = configuration;
-                    AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
-
-                    var optionBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                    optionBuilder.UseSqlServer(AppSettings.ConnectionString);
-
-                    services.AddScoped<ApplicationDbContext>(d => new ApplicationDbContext(optionBuilder.Options));
                 });
+                //.ConfigureServices((hostContext, services) =>
+                //{
+                //    IConfiguration configuration = hostContext.Configuration;
+                //    AppSettings.Configuration = configuration;
+                //    AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+
+                //    var optionBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                //    optionBuilder.UseSqlServer(AppSettings.ConnectionString);
+
+                //    services.AddScoped<ApplicationDbContext>(d => new ApplicationDbContext(optionBuilder.Options));
+                //});
     }
 }

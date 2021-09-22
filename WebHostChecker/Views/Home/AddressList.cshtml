@@ -3,11 +3,11 @@
     ViewData["Title"] = "Список URL-адресов";
 }
 <h2>@ViewData["Title"]</h2>
-
+<div></div>
+<p><a href="~/Account/Logout">Logout</a></p>
+<div></div>
 <p><a href="/Home/AddUrl">Добавить URL-адрес</a></p>
-<form method="post" asp-controller="Home" asp-action="CheckStateAdreses" asp-anti-forgery="true">
-    <input type="submit" value="Проверить сейчас" />
-</form>
+
 <table class="table">
     <thead>
         <tr><th>Url-адрес</th><th>Период проверки</th><th>Доступность</th><th>Время следующей проверки</th></tr>
@@ -15,7 +15,22 @@
     <tbody>
         @foreach (var address in Model)
         {
-            <tr><td>@address.AddressName</td><td>@address.TimePeriod</td><td>@address.Availability</td><td>@address.TimeOfChecking</td></tr>
+        <tr>
+            <td>@address.AddressName</td>
+            <td >@address.TimePeriod.ToShortTimeString()</td>
+            <td>@address.Availability</td>
+            <td>@address.TimeOfChecking</td>
+            <td class="text-center align-middle">
+                <div btn-group align-middle>
+                    <form asp-action="Delete" asp-controller="Home" asp-route-WebAddressId="@address.WebAddressId" method="post">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to delete elment: @address.AddressName ?')">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
         }
     </tbody>
 </table>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,15 +21,18 @@ namespace WebHostChecker.Services
         //private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         //private HttpClient _client;
         //private readonly IDbHelper _dbHelper;
-        private readonly DbHelper _dbHelper;
+        //private readonly DbHelper _dbHelper;
+        private readonly IHostCheck _hostCheck;
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private ILogger<TimerService> _logger;
         private Timer _timer;
         private int checkPeriod = 30;
 
-        public TimerService(ILogger<TimerService> logger, IHttpClientFactory clientFactory, IHostCheck hostCheck)
+        public TimerService(ILogger<TimerService> logger, IHttpClientFactory clientFactory, IServiceScopeFactory serviceScopeFactory, IHostCheck hostCheck)
         {
-            _dbHelper = new DbHelper(hostCheck);
+            _hostCheck = hostCheck;
+            _serviceScopeFactory = serviceScopeFactory;
             _clientFactory = clientFactory;
             _logger = logger;
         }
@@ -54,14 +58,50 @@ namespace WebHostChecker.Services
             _timer.Change(Timeout.Infinite, 0);
             try
             {
-                _dbHelper.GetListAddreses(client);
+                //_dbHelper.GetListAddreses(client);
 
-                //var response = client.GetAsync("https://docs.microsoft.com");
-                //if (response.Result.IsSuccessStatusCode) //"OK" == result.StatusCode
-                //    _logger.LogInformation("Web address availibility. {0}", true);
-                //else
-                //    _logger.LogInformation("Web address availibility. {0}", false);
-                //_dbHelper.GetListAddreses();
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    IQueryable<WebAddress> addreses = dbContext.Addresses;
+                   //Queryable<RequestHistory> requestHistories = dbContext.History;
+                    try
+                    {
+                        var maxTime = DateTime.Now.AddMinutes(1);
+                        addreses = addreses.Where(a => a.TimeOfChecking >= DateTime.Now && a.TimeOfChecking <= maxTime);
+                        foreach (WebAddress obj in addreses)
+                        {
+
+                            System.Diagnostics.Debug.WriteLine($"Before---Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
+
+                            obj.Availability = _hostCheck.WebRequest(obj.AddressName, client).Result;
+                            obj.TimeOfChecking = _hostCheck.AddTimeNextOfChecking(obj.TimePeriod.Minute, obj.TimePeriod.Hour);
+
+                            System.Diagnostics.Debug.WriteLine($"After    Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
+                            //_logger.LogInformation("After    Address: {0}, Availability: {1}, TimeOfChecking: {2}", obj.AddressName, obj.Availability, obj.TimeOfChecking);
+
+                            RequestHistory history = new RequestHistory
+                            {
+                                UserId = obj.UserId,
+                                CheckDate = DateTime.Now,
+                                Availability = obj.Availability,
+                                HostName = obj.AddressName,
+                                WebAddressId = obj.WebAddressId
+                            };
+
+                            dbContext.History.Add(history);
+                            dbContext.Entry(obj).State = EntityState.Modified;
+                        }
+                        if (addreses.Any())
+                            dbContext.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ERROR into GetListAddreses. {ex.Message}");
+                        //_logger.LogInformation("ERROR into GetListAddreses. {0}", ex.Message);
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -74,20 +114,6 @@ namespace WebHostChecker.Services
             }
 
             _logger.LogInformation("------CheckDB completed.");
-        }
-
-        //public bool WebRequest(string webAddress)
-        //{
-        //    var result = _client.GetAsync(webAddress);
-        //    if (result.Result.IsSuccessStatusCode) //"OK" == result.StatusCode
-        //        return true;
-        //    else
-        //        return false;
-        //}
-        public DateTime AddTimeNextOfChecking(int minute, int hours)
-        {
-            DateTime nextTimeOfChecking = DateTime.Now.AddMinutes(minute).AddHours(hours);
-            return nextTimeOfChecking;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -46,14 +46,16 @@ namespace WebHostChecker.Models
                     {
                         //_logger.LogInformation("Before---Address: {0}, Availability: {1}, TimeOfChecking: {2}", obj.AddressName, obj.Availability, obj.TimeOfChecking);
                         System.Diagnostics.Debug.WriteLine($"Before---Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
-                        obj.Availability = _hostCheck.WebRequest(obj.AddressName, client);
+                        
+                        obj.Availability = _hostCheck.WebRequest(obj.AddressName, client).Result;
                         obj.TimeOfChecking = _hostCheck.AddTimeNextOfChecking(obj.TimePeriod.Minute, obj.TimePeriod.Hour);
+                        
                         System.Diagnostics.Debug.WriteLine($"After    Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
                         //_logger.LogInformation("After    Address: {0}, Availability: {1}, TimeOfChecking: {2}", obj.AddressName, obj.Availability, obj.TimeOfChecking);
                         dbContext.Entry(obj).State = EntityState.Modified;
                     }
                     if (_addreses.Any())
-                        dbContext.SaveChanges();
+                        dbContext.SaveChangesAsync();
                 }
                 catch (Exception ex)
                 {

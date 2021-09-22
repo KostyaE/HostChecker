@@ -9,7 +9,7 @@ namespace WebHostChecker.Common
 {
     public interface IHostCheck
     {
-        bool WebRequest(string webAddress, HttpClient client);
+        Task<bool> WebRequest(string webAddress, HttpClient client);
         DateTime AddTimeNextOfChecking(int minute, int hours);
     }
 }
