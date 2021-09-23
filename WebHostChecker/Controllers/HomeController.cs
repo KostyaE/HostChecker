@@ -1,15 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using WebHostChecker.Common;
 using WebHostChecker.Models;
@@ -75,7 +68,6 @@ namespace WebHostChecker.Controllers
 
         public async Task<IActionResult> Delete([FromQuery(Name = "WebAddressId")] int addressId)
         {
-
             _user = await _context.Users.Include(u => u.WebAddreses)
                 .Include(h => h.RequestsHistory)
                 .Where(u => u.Email == User.Identity.Name).FirstOrDefaultAsync();
