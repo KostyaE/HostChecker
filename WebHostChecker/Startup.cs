@@ -1,16 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using WebHostChecker.Common;
 using WebHostChecker.Models;
 using WebHostChecker.Services;
@@ -29,9 +23,7 @@ namespace WebHostChecker
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpClient();
-            //services.AddSingleton<IDbHelper, DbHelper>();
             services.AddTransient<IHostCheck, HostCheck>();
-            //services.AddSingleton<ITimerHostCheck, TimerHostCheck>();
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseSqlServer(connection));

@@ -16,6 +16,7 @@ namespace WebHostChecker
             _logger = logger;
         }
 
+        // проверяем доступность сайта
         public Task<bool> WebRequest(string webAddress, HttpClient client)
         {
             try
@@ -35,6 +36,7 @@ namespace WebHostChecker
 
         }
 
+        // прибавляем промежуточное время для следующей проверки
         public DateTime AddTimeNextOfChecking(int minute, int hours)
         {
             DateTime nextTimeOfChecking = DateTime.Now.AddMinutes(minute).AddHours(hours);

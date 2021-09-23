@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -30,6 +28,7 @@ namespace WebHostChecker.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            // запускает CheckDB каждые 30 сек
             _timer = new Timer(CheckDB, cancellationToken, TimeSpan.FromSeconds(checkPeriod), TimeSpan.FromSeconds(checkPeriod));
             return Task.CompletedTask;
         }
@@ -48,14 +47,15 @@ namespace WebHostChecker.Services
                     IQueryable<WebAddress> addreses = dbContext.Addresses;
                     try
                     {
-                        var maxTime = DateTime.Now.AddMinutes(1);
-                        addreses = addreses.Where(a => a.TimeOfChecking >= DateTime.Now && a.TimeOfChecking <= maxTime);
+                        var minTime = DateTime.Now.AddMinutes(-1);
+                        // выбираем адреса которые нужно проверить в промежутке от minTime до сейчас
+                        addreses = addreses.Where(a => a.TimeOfChecking <= DateTime.Now && a.TimeOfChecking >= minTime);
                         foreach (WebAddress obj in addreses)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Before---Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
+                            // проверяем доступность сайта
                             obj.Availability = _hostCheck.WebRequest(obj.AddressName, client).Result;
+                            // прибавляем промежуточное время для следующей проверки
                             obj.TimeOfChecking = _hostCheck.AddTimeNextOfChecking(obj.TimePeriod.Minute, obj.TimePeriod.Hour);
-                            System.Diagnostics.Debug.WriteLine($"After    Address: {obj.AddressName}, Availability: {obj.Availability}, TimeOfChecking: {obj.TimeOfChecking}");
 
                             RequestHistory history = new RequestHistory
                             {
@@ -66,6 +66,7 @@ namespace WebHostChecker.Services
                                 WebAddressId = obj.WebAddressId
                             };
 
+                            // добавлям запись в историю
                             dbContext.History.Add(history);
                             dbContext.Entry(obj).State = EntityState.Modified;
                         }
